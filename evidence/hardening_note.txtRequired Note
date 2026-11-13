@@ -1,0 +1,2 @@
+Ubuntu server was heardened as per my knowledge by configuring the SSH key based authentication, disbaling root and password-based SSH access, enforcing UFW firewalls rules, and then there is also a fail2banprotection enabled as well. 
+All the unnecessary services are disabled to reduce the attack surface. As per my understanding, I verified it and submitting the result. Moreover, as per the information, I'll update and provide asked things!

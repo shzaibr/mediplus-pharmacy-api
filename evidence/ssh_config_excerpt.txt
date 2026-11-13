@@ -1,0 +1,5 @@
+AuthenticationMethods publickey
+KbdInteractiveAuthentication no
+PasswordAuthentication no
+PermitRootLogin no
+PubkeyAuthentication yes
