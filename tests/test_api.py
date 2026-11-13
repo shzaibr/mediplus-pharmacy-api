@@ -24,15 +24,17 @@ def test_home(client):
     response = client.get("/")
     assert response.status_code == 200
 
+def test_login_success(client, monkeypatch):
+    monkeypatch.setenv("ADMIN_USERNAME", "admin")
+    monkeypatch.setenv("ADMIN_PASSWORD", "TestOnlyPassword123!")
 
-def test_login_success(client):
     response = client.post("/login", json={
         "username": "admin",
-        "password": "MediplusAdmin@2026!"
+        "password": "TestOnlyPassword123!"
     })
+
     assert response.status_code == 200
     assert "access_token" in response.json
-
 
 def test_login_failure(client):
     response = client.post("/login", json={
