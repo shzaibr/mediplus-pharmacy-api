@@ -1,12 +1,10 @@
   UNIT                          LOAD   ACTIVE SUB     DESCRIPTION
   accounts-daemon.service       loaded active running Accounts Service
-  avahi-daemon.service          loaded active running Avahi mDNS/DNS-SD Stack
   colord.service                loaded active running Manage, Install and Generate Color Profiles
   cron.service                  loaded active running Regular background program processing daemon
-  cups-browsed.service          loaded active running Make remote CUPS printers available locally
-  cups.service                  loaded active running CUPS Scheduler
   dbus.service                  loaded active running D-Bus System Message Bus
   fail2ban.service              loaded active running Fail2Ban Service
+  fwupd.service                 loaded active running Firmware update daemon
   getty@tty1.service            loaded active running Getty on tty1
   irqbalance.service            loaded active running irqbalance daemon
   lightdm.service               loaded active running Light Display Manager
@@ -18,6 +16,7 @@
   open-vm-tools.service         loaded active running Service for virtual machines hosted on VMware
   packagekit.service            loaded active running PackageKit Daemon
   polkit.service                loaded active running Authorization Manager
+  postgresql@14-main.service    loaded active running PostgreSQL Cluster 14-main
   power-profiles-daemon.service loaded active running Power Profiles daemon
   rsyslog.service               loaded active running System Logging Service
   rtkit-daemon.service          loaded active running RealtimeKit Scheduling Policy Service
@@ -40,4 +39,4 @@
 LOAD   = Reflects whether the unit definition was properly loaded.
 ACTIVE = The high-level unit activation state, i.e. generalization of SUB.
 SUB    = The low-level unit activation state, values depend on unit type.
-37 loaded units listed.
+36 loaded units listed.
