@@ -1,3 +1,7 @@
+EXCEPTION – SERVICE RETAINED
+lightdm.service: Kept running because the XFCE graphical desktop is required for university project work.
+
+RUNNING SERVICES
   UNIT                          LOAD   ACTIVE SUB     DESCRIPTION
   accounts-daemon.service       loaded active running Accounts Service
   colord.service                loaded active running Manage, Install and Generate Color Profiles
