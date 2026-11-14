@@ -1,15 +1,16 @@
 SERVICE RETENTION EXCEPTIONS
 lightdm.service: Retained because the XFCE graphical desktop is required for university project work.
 snapd.service: Retained because LXD is installed as a Snap application and Snap manages installed Snap applications and their updates.
+accounts-daemon.service: Retained to provide user-account information to graphical login and desktop components.
+cron.service: Retained for scheduled system maintenance tasks.
+dbus.service: Retained because desktop and system components depend on it for inter-process communication.
 
 RUNNING SERVICES
   UNIT                        LOAD   ACTIVE SUB     DESCRIPTION
   accounts-daemon.service     loaded active running Accounts Service
-  colord.service              loaded active running Manage, Install and Generate Color Profiles
   cron.service                loaded active running Regular background program processing daemon
   dbus.service                loaded active running D-Bus System Message Bus
   fail2ban.service            loaded active running Fail2Ban Service
-  fwupd.service               loaded active running Firmware update daemon
   getty@tty1.service          loaded active running Getty on tty1
   irqbalance.service          loaded active running irqbalance daemon
   lightdm.service             loaded active running Light Display Manager
@@ -41,4 +42,4 @@ RUNNING SERVICES
 LOAD   = Reflects whether the unit definition was properly loaded.
 ACTIVE = The high-level unit activation state, i.e. generalization of SUB.
 SUB    = The low-level unit activation state, values depend on unit type.
-33 loaded units listed.
+31 loaded units listed.
