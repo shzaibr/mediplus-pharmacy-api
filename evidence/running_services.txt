@@ -1,41 +1,48 @@
 SERVICE RETENTION REASONS
 ------------------------
 
-accounts-daemon.service: Retained to provide user-account information to system and desktop components.
+accounts-daemon.service: Retained to provide user-account information to system components.
 cron.service: Retained to execute scheduled maintenance and administrative tasks.
-dbus.service: Retained because Ubuntu system and desktop components depend on inter-process communication.
+dbus.service: Retained because Ubuntu system components depend on inter-process communication.
 fail2ban.service: Retained to protect SSH against repeated failed login attempts.
 fwupd.service: Retained to support firmware update management.
-getty@tty1.service: Retained to provide local console login and recovery access.
-irqbalance.service: Retained to distribute hardware interrupts across available CPU cores.
+irqbalance.service: Retained to distribute hardware interrupts across CPU cores.
 mediplus.service: Retained to run the MediPlus Pharmacy API through systemd.
 networkd-dispatcher.service: Retained to handle scripts associated with network interface state changes.
 NetworkManager.service: Retained to support management of NetworkManager-controlled network connections.
 nginx.service: Retained as the HTTP reverse proxy on port 80, forwarding requests to Gunicorn.
 open-vm-tools.service: Retained to provide integration between the Ubuntu guest and VMware host.
-polkit.service: Retained to authorize privileged operations requested by system and desktop applications.
+polkit.service: Retained to authorize privileged operations requested by system applications.
 postgresql@14-main.service: Retained because the permission_rag database supports the separate RAG project; PostgreSQL listens on localhost.
 rsyslog.service: Retained to collect and manage system and application logs.
-rtkit-daemon.service: Retained to provide real-time scheduling support for desktop audio applications.
+rtkit-daemon.service: Retained to provide real-time scheduling for applications that require it.
 snapd.service: Retained because LXD is installed as a Snap application and Snap manages its applications and updates.
 ssh.service: Retained to provide secure remote administration through public-key authentication.
 systemd-journald.service: Retained to collect and store system and kernel logs.
-systemd-logind.service: Retained to manage user logins, sessions and system seats.
+systemd-logind.service: Retained to manage user logins and sessions.
 systemd-networkd.service: Retained to provide network configuration and interface management.
 systemd-resolved.service: Retained to provide DNS name resolution.
 systemd-timesyncd.service: Retained to synchronize the system clock with network time servers.
 systemd-udevd.service: Retained to detect devices and manage device nodes and permissions.
-udisks2.service: Retained to provide disk management and storage operations when the graphical desktop is enabled.
+udisks2.service: Retained to provide disk discovery and storage-management operations.
 unattended-upgrades.service: Retained to install available security updates automatically.
-upower.service: Retained to provide power and device-status information to desktop components.
+upower.service: Retained to provide power-status information and power-management functionality.
 user@1000.service: Retained to manage background processes and services for the logged-in user.
 vgauth.service: Retained to provide VMware guest authentication integration.
 
 INTENTIONALLY MASKED SERVICES
 -----------------------------
-lightdm.service: Stopped and masked to keep the VM in headless mode and reduce desktop-related attack surface. It can be temporarily unmasked and started when XFCE is required.
 
-Other unnecessary services previously stopped and masked include Avahi, CUPS, Colord, PackageKit, Power Profiles, Switcheroo Control, Multipath and WPA Supplicant.
+lightdm.service: Stopped and masked to keep the VM headless and reduce the desktop-related attack surface. XFCE remains installed and can be restored when required.
+getty@tty1.service: Stopped and masked to disable the local TTY1 login console while using SSH for remote administration.
+avahi-daemon.service and avahi-daemon.socket: Masked because local network discovery is not required.
+cups.service, cups.socket, cups.path and cups-browsed.service: Masked because printing is not required.
+colord.service: Masked because display colour-profile management is not required in the headless configuration.
+packagekit.service: Masked because graphical package management is not required; command-line APT remains available.
+power-profiles-daemon.service: Masked because desktop power-profile switching is unnecessary in this VM.
+switcheroo-control.service: Masked because GPU switching is unnecessary in this VM.
+multipathd.service and multipathd.socket: Masked because the VM has no multipath maps and uses a single virtual disk.
+wpa_supplicant.service: Masked because the VM uses a wired VMware Ethernet interface and does not require wireless authentication.
 
 RUNNING SERVICES
 ----------------
@@ -45,7 +52,6 @@ RUNNING SERVICES
   dbus.service                loaded active running D-Bus System Message Bus
   fail2ban.service            loaded active running Fail2Ban Service
   fwupd.service               loaded active running Firmware update daemon
-  getty@tty1.service          loaded active running Getty on tty1
   irqbalance.service          loaded active running irqbalance daemon
   mediplus.service            loaded active running MediPlus Pharmacy API
   networkd-dispatcher.service loaded active running Dispatcher daemon for systemd-networkd
@@ -73,4 +79,4 @@ RUNNING SERVICES
 LOAD   = Reflects whether the unit definition was properly loaded.
 ACTIVE = The high-level unit activation state, i.e. generalization of SUB.
 SUB    = The low-level unit activation state, values depend on unit type.
-29 loaded units listed.
+28 loaded units listed.

@@ -127,3 +127,30 @@ The current deployment uses unencrypted HTTP only. No HTTPS listener, TLS config
 - HTTP traffic is unencrypted and should only be used in this controlled lab environment.
 - The VM does not have a public IP address or domain, so the service is not publicly accessible.
 - The project is a cybersecurity demonstration, not a production pharmacy system.
+
+## Host Hardening and Service Management
+
+### Firewall
+- UFW is enabled with incoming traffic denied by default.
+- Only SSH (22/tcp) and HTTP (80/tcp) are allowed inbound for IPv4 and IPv6.
+
+### SSH security
+- Root login is disabled.
+- Password and keyboard-interactive authentication are disabled.
+- Public-key authentication is required for remote administration.
+
+### Service minimization
+The following services were stopped and masked to reduce the attack surface:
+- Avahi: local network discovery is not required.
+- CUPS and CUPS-Browsed: printing is not required.
+- Colord: display colour-profile management is not required.
+- PackageKit: graphical package management is not required; command-line APT remains available.
+- Power Profiles and Switcheroo Control: desktop power-profile and GPU switching are unnecessary.
+- Multipath: multipath storage is not configured.
+- WPA Supplicant: wireless authentication is not required for this wired VM.
+- LightDM: masked to keep the VM headless.
+- TTY1 Getty: masked to disable local TTY1 login while SSH is used for administration.
+
+The individual retention reasons for all running services are documented in `evidence/running_services.txt`.
+
+XFCE remains installed. To restore the graphical desktop when required, run `sudo systemctl unmask lightdm.service` followed by `sudo systemctl start lightdm.service`.
