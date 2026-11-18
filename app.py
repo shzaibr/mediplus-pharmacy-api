@@ -1,4 +1,6 @@
 
+import logging
+import math
 import os
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -6,12 +8,16 @@ from functools import wraps
 import jwt
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 load_dotenv()
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
+app.logger.setLevel(logging.INFO)
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
 
 app.config["SECRET_KEY"] = os.getenv("JWT_SECRET", "")
 app.config["JWT_ALGORITHM"] = "HS256"
@@ -49,6 +55,10 @@ def token_required(function):
         parts = auth_header.split()
 
         if len(parts) != 2 or parts[0].lower() != "bearer":
+            app.logger.warning(
+                "security_event=authentication_failed source_ip=%s endpoint=%s reason=missing_or_malformed_bearer",
+                request.remote_addr, request.path
+            )
             return jsonify({"error": "Authentication token required"}), 401
 
         try:
@@ -59,6 +69,10 @@ def token_required(function):
             )
             request.current_user = payload["sub"]
         except (jwt.InvalidTokenError, KeyError):
+            app.logger.warning(
+                "security_event=authentication_failed source_ip=%s endpoint=%s reason=invalid_or_expired_token",
+                request.remote_addr, request.path
+            )
             return jsonify({"error": "Invalid or expired token"}), 401
 
         return function(*args, **kwargs)
@@ -91,8 +105,16 @@ def validate_medicine(data, partial=False):
 
     if "price" in data:
         value = data["price"]
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
-            return "Price must be a non-negative number"
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return "Price must be a finite non-negative number"
+
+        try:
+            numeric_price = float(value)
+        except (OverflowError, ValueError):
+            return "Price must be a finite non-negative number"
+
+        if not math.isfinite(numeric_price) or numeric_price < 0:
+            return "Price must be a finite non-negative number"
 
     return None
 
@@ -111,6 +133,10 @@ def login():
     data = request.get_json(silent=True)
 
     if not isinstance(data, dict):
+        app.logger.warning(
+            "security_event=login_rejected source_ip=%s reason=invalid_request_format",
+            request.remote_addr
+        )
         return jsonify({"error": "JSON username and password required"}), 400
 
     username = os.getenv("ADMIN_USERNAME", "")
@@ -122,8 +148,16 @@ def login():
         or data.get("username") != username
         or data.get("password") != password
     ):
+        app.logger.warning(
+            "security_event=login_failed source_ip=%s reason=invalid_credentials",
+            request.remote_addr
+        )
         return jsonify({"error": "Invalid credentials"}), 401
 
+    app.logger.info(
+        "security_event=login_success source_ip=%s",
+        request.remote_addr
+    )
     return jsonify({"access_token": create_token(username)}), 200
 
 
@@ -192,9 +226,30 @@ def not_found(_error):
     return jsonify({"error": "Resource not found"}), 404
 
 
+@app.errorhandler(405)
+def method_not_allowed(error):
+    response = jsonify({"error": "Method not allowed"})
+    response.status_code = 405
+
+    original_response = error.get_response()
+    if "Allow" in original_response.headers:
+        response.headers["Allow"] = original_response.headers["Allow"]
+
+    return response
+
+
 @app.errorhandler(429)
 def too_many_requests(_error):
+    app.logger.warning(
+        "security_event=rate_limit_exceeded source_ip=%s endpoint=%s method=%s",
+        request.remote_addr, request.path, request.method
+    )
     return jsonify({"error": "Too many requests; try again later"}), 429
+
+
+@app.errorhandler(413)
+def request_too_large(_error):
+    return jsonify({"error": "Request body too large"}), 413
 
 
 @app.errorhandler(500)
