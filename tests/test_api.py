@@ -4,8 +4,13 @@ from app import app, medicines, create_token
 
 
 @pytest.fixture
-def client():
-    app.config["TESTING"] = True
+def client(monkeypatch):
+    monkeypatch.setitem(app.config, "TESTING", True)
+    monkeypatch.setitem(
+        app.config,
+        "SECRET_KEY",
+        "CI-ONLY-TEST-SECRET-NOT-FOR-PRODUCTION-123456789"
+    )
     medicines.clear()
     medicines.update({
         1: {"id": 1, "name": "Paracetamol", "quantity": 100, "price": 2.50}
@@ -15,7 +20,7 @@ def client():
 
 
 @pytest.fixture
-def auth_headers():
+def auth_headers(client):
     token = create_token("admin")
     return {"Authorization": f"Bearer {token}"}
 
