@@ -1,5 +1,6 @@
-
 # MediPlus Pharmacy API
+
+[![MediPlus Security Checks](https://github.com/shzaibr/mediplus-pharmacy-api/actions/workflows/security.yml/badge.svg)](https://github.com/shzaibr/mediplus-pharmacy-api/actions/workflows/security.yml)
 
 ## Project Overview
 MediPlus is a Flask-based pharmacy inventory API developed as a cybersecurity hardening project. It demonstrates authentication, access control, input validation, and protection against repeated login attempts.
