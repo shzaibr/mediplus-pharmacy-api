@@ -10,20 +10,26 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 
 load_dotenv()
 
 app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
+if os.getenv("PYTHONANYWHERE") != "1":
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 app.logger.setLevel(logging.INFO)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
 
 app.config["SECRET_KEY"] = os.getenv("JWT_SECRET", "")
 app.config["JWT_ALGORITHM"] = "HS256"
 
+def get_client_ip():
+    if os.getenv("PYTHONANYWHERE") == "1":
+        return request.headers.get("X-Real-IP") or request.remote_addr
+    return request.remote_addr
+
+
 limiter = Limiter(
-    get_remote_address,
+    get_client_ip,
     app=app,
     default_limits=["100 per hour"],
     storage_uri="memory://",
@@ -57,7 +63,7 @@ def token_required(function):
         if len(parts) != 2 or parts[0].lower() != "bearer":
             app.logger.warning(
                 "security_event=authentication_failed source_ip=%s endpoint=%s reason=missing_or_malformed_bearer",
-                request.remote_addr, request.path
+                get_client_ip(), request.path
             )
             return jsonify({"error": "Authentication token required"}), 401
 
@@ -71,7 +77,7 @@ def token_required(function):
         except (jwt.InvalidTokenError, KeyError):
             app.logger.warning(
                 "security_event=authentication_failed source_ip=%s endpoint=%s reason=invalid_or_expired_token",
-                request.remote_addr, request.path
+                get_client_ip(), request.path
             )
             return jsonify({"error": "Invalid or expired token"}), 401
 
@@ -135,7 +141,7 @@ def login():
     if not isinstance(data, dict):
         app.logger.warning(
             "security_event=login_rejected source_ip=%s reason=invalid_request_format",
-            request.remote_addr
+            get_client_ip()
         )
         return jsonify({"error": "JSON username and password required"}), 400
 
@@ -150,13 +156,13 @@ def login():
     ):
         app.logger.warning(
             "security_event=login_failed source_ip=%s reason=invalid_credentials",
-            request.remote_addr
+            get_client_ip()
         )
         return jsonify({"error": "Invalid credentials"}), 401
 
     app.logger.info(
         "security_event=login_success source_ip=%s",
-        request.remote_addr
+        get_client_ip()
     )
     return jsonify({"access_token": create_token(username)}), 200
 
@@ -242,7 +248,7 @@ def method_not_allowed(error):
 def too_many_requests(_error):
     app.logger.warning(
         "security_event=rate_limit_exceeded source_ip=%s endpoint=%s method=%s",
-        request.remote_addr, request.path, request.method
+        get_client_ip(), request.path, request.method
     )
     return jsonify({"error": "Too many requests; try again later"}), 429
 
