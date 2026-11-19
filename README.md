@@ -39,7 +39,7 @@ Start the application:
 python app.py
 ```
 
-The API runs locally at `http://127.0.0.1:5000`.
+For local development only, `python app.py` starts the Flask development server at `http://127.0.0.1:5000`. The public deployment is hosted on PythonAnywhere over HTTPS.
 
 ## API Endpoints
 
@@ -91,45 +91,64 @@ This implementation is a cybersecurity learning prototype and must not be used t
 
 ## Deployment
 
-The MediPlus API is deployed on an Ubuntu Server 22.04 virtual machine.
+### Public Deployment: PythonAnywhere
 
-### Deployment architecture
+**Live API URL:** https://shzaibr.pythonanywhere.com/
 
-Client → Nginx (HTTP, port 80) → Gunicorn (127.0.0.1:8000) → Flask API
+MediPlus is publicly deployed on PythonAnywhere using a manually configured Flask WSGI application. The Ubuntu VM described below is used for local security testing and host-hardening exercises, not public hosting.
 
-### Services
+### Hosting Configuration
 
-- **Nginx:** HTTP reverse proxy on port 80, forwarding requests to Gunicorn and adding security response headers.
-- **Gunicorn:** WSGI application server managed by systemd.
-- **Flask:** Handles API routes, JWT authentication and medicine operations.
-- **UFW:** Allows inbound SSH (22/tcp) and HTTP (80/tcp) only, for IPv4 and IPv6. Incoming traffic is denied by default.
-- **Fail2ban:** Protects SSH against repeated failed login attempts.
+- Hosting platform: PythonAnywhere
+- Python runtime: 3.10.12
+- Framework: Flask 3.1.3
+- Application entry point: Flask WSGI application
+- Virtual environment: `/home/shzaibr/.virtualenvs/mediplus-venv`
+- Project directory: `/home/shzaibr/mediplus-pharmacy-api`
+- WSGI configuration: `/var/www/shzaibr_pythonanywhere_com_wsgi.py`
+- Public protocol: HTTPS
+- Production credentials: Stored in a private `.env` file with permissions `0600`; excluded from Git.
 
-### HTTP configuration
+### Deployment Architecture
 
-Nginx listens on port 80 for IPv4 and IPv6 and forwards requests to Gunicorn at 127.0.0.1:8000. The reverse proxy adds X-Content-Type-Options, X-Frame-Options and Referrer-Policy security headers.
+Client -> HTTPS -> PythonAnywhere WSGI hosting -> Flask API -> Medicine inventory
 
-The current deployment uses unencrypted HTTP only. No HTTPS listener, TLS configuration or HTTP-to-HTTPS redirect is configured.
+PythonAnywhere uses the platform-provided `X-Real-IP` header for client identification in rate limiting and security-event logging. The Ubuntu VM configuration retains its separate trusted Nginx ProxyFix handling.
 
-### Verification
+### Live API Verification
 
-- Automated tests: 11 passed.
-- Bandit static security analysis: no issues identified.
-- HTTP health endpoint: HTTP 200.
-- Unauthenticated medicine endpoint: HTTP 401.
-- Nginx configuration test: successful.
-- Nginx verified to listen on port 80 only.
+The following checks were performed against the publicly accessible PythonAnywhere deployment:
 
-### Limitations
+- API health endpoint: HTTP 200.
+- Unauthenticated medicine request: HTTP 401.
+- Administrator login: HTTP 200; JWT issued.
+- Authenticated medicine retrieval: HTTP 200.
+- Medicine creation: HTTP 201.
+- Medicine update: HTTP 200.
+- Medicine deletion: HTTP 200.
+- Unsupported HTTP method: HTTP 405 with JSON response.
 
-- Medicine records are stored in memory and reset when the application restarts.
+The temporary medicine used for CRUD verification was deleted successfully.
+
+### Automated Security Verification
+
+- Pytest regression suite: 11 tests passed.
+- Bandit: no issues identified at the configured severity threshold.
+- GitHub Actions runs Bandit and Pytest on pushes and pull requests.
+
+Workflow: https://github.com/shzaibr/mediplus-pharmacy-api/actions
+
+Live deployment: https://shzaibr.pythonanywhere.com/
+
+### Deployment Limitations
+
+- Medicine records are stored in memory and reset when the application reloads.
 - The project uses a single demonstration administrator account.
 - Rate limiting uses in-memory storage.
-- HTTP traffic is unencrypted and should only be used in this controlled lab environment.
-- The VM does not have a public IP address or domain, so the service is not publicly accessible.
-- The project is a cybersecurity demonstration, not a production pharmacy system.
+- The application is a cybersecurity learning prototype, not a production pharmacy system.
+- The Ubuntu VM is a separate local testing environment and is not the public API host.
 
-## Host Hardening and Service Management
+## Ubuntu VM Host Hardening and Service Management
 
 ### Firewall
 - UFW is enabled with incoming traffic denied by default.
